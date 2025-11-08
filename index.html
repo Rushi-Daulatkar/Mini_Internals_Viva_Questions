@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pi-Vate Cloud Defense Dossier (Functional)</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+      /*
+        ====================================================
+        PURE CSS REPLACEMENT FOR TAILWIND UTILITIES
+        ====================================================
+        */
+
+      :root {
+        --slate-900: #0f172a;
+        --slate-800: #1e293b;
+        --slate-700: #334155;
+        --slate-600: #475569;
+        --slate-500: #64748b;
+        --slate-400: #94a3b8;
+        --white: #ffffff;
+        --blue-500: #3b82f6;
+        --blue-400: #60a5fa;
+        --green-500: #22c55e;
+        --purple-500: #a855f7;
+        --cyan-500: #06b6d4;
+        --red-500: #ef4444;
+        --indigo-500: #6366f1;
+        --yellow-500: #f59e0b;
+      }
+
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(
+          to bottom right,
+          var(--slate-900),
+          var(--slate-800) 50%,
+          var(--slate-900)
+        );
+        color: var(--white);
+      }
+
+      .header {
+        background-color: var(--slate-800);
+        border-bottom: 1px solid var(--slate-700);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem 0;
+      }
+
+      .container {
+        max-width: 80rem; /* max-w-7xl */
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      /* Search and Filter Bar Styling */
+      .search-bar-container {
+        background-color: var(--slate-800);
+        border: 1px solid var(--slate-700);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+      }
+
+      .search-input-group {
+        position: relative;
+        flex-grow: 1;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--slate-400);
+        width: 20px;
+        height: 20px;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 0.5rem 1rem 0.5rem 2.5rem; /* pl-10 */
+        background-color: var(--slate-700);
+        color: var(--white);
+        border-radius: 0.5rem;
+        border: 1px solid var(--slate-600);
+        outline: none;
+      }
+
+      .search-input::placeholder {
+        color: var(--slate-400);
+      }
+
+      .search-input:focus,
+      .filter-select:focus {
+        outline: 2px solid var(--blue-500);
+        outline-offset: 0;
+      }
+
+      .filter-select {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        background-color: var(--slate-700);
+        color: var(--white);
+        border-radius: 0.5rem;
+        border: 1px solid var(--slate-600);
+        appearance: none; /* Hide default select arrow */
+        cursor: pointer;
+      }
+
+      /* Section Styling (Accordion) */
+      .section-item {
+        background-color: var(--slate-800);
+        border-radius: 0.75rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid var(--slate-700);
+        margin-bottom: 1.5rem;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 1.5rem;
+        text-align: left;
+        transition: background-color 0.3s ease;
+        cursor: pointer;
+        border: none;
+        outline: none;
+      }
+
+      .section-header-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--white);
+      }
+
+      /* Color Overrides for Section Headers */
+      .header-blue {
+        background-color: rgba(59, 130, 246, 0.3);
+      }
+      .header-blue:hover {
+        background-color: rgba(59, 130, 246, 0.5);
+      }
+      .header-green {
+        background-color: rgba(34, 197, 94, 0.3);
+      }
+      .header-green:hover {
+        background-color: rgba(34, 197, 94, 0.5);
+      }
+      .header-purple {
+        background-color: rgba(168, 85, 247, 0.3);
+      }
+      .header-purple:hover {
+        background-color: rgba(168, 85, 247, 0.5);
+      }
+      .header-cyan {
+        background-color: rgba(6, 182, 212, 0.3);
+      }
+      .header-cyan:hover {
+        background-color: rgba(6, 182, 212, 0.5);
+      }
+      .header-red {
+        background-color: rgba(239, 68, 68, 0.3);
+      }
+      .header-red:hover {
+        background-color: rgba(239, 68, 68, 0.5);
+      }
+      .header-indigo {
+        background-color: rgba(99, 102, 241, 0.3);
+      }
+      .header-indigo:hover {
+        background-color: rgba(99, 102, 241, 0.5);
+      }
+      .header-yellow {
+        background-color: rgba(245, 158, 11, 0.3);
+      }
+      .header-yellow:hover {
+        background-color: rgba(245, 158, 11, 0.5);
+      }
+
+      .questions-list {
+        padding: 1.5rem;
+        padding-top: 0.5rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out, opacity 0.3s ease;
+        opacity: 0;
+      }
+
+      .questions-list.active {
+        max-height: 5000px; /* Large enough value */
+        opacity: 1;
+        padding-top: 1.5rem;
+      }
+
+      .question-item {
+        background-color: var(--slate-700);
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--slate-600);
+        margin-top: 1rem;
+        overflow: hidden; /* ADDED: To contain collapsible content */
+      }
+
+      .question-item:first-child {
+        margin-top: 0;
+      }
+
+      /* ADDED: Clickable header for the question */
+      .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .question-header:hover {
+        background-color: var(--slate-600);
+      }
+
+      .question-text {
+        color: var(--blue-400);
+        font-weight: 500;
+        margin-bottom: 0; /* REMOVED: No longer needed */
+        flex: 1;
+      }
+
+      /* ADDED: Collapsible content area for the answer */
+      .question-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+
+      /* ADDED: Active state for an open question */
+      .question-item.active .question-content {
+        max-height: 1000px; /* Large value */
+        padding: 0 1rem 1rem 1rem; /* Add padding when open */
+      }
+
+      .question-item.active .question-toggle-icon {
+        transform: rotate(90deg);
+      }
+
+      .answer-block {
+        padding-left: 1rem;
+        border-left: 4px solid var(--blue-500);
+        color: var(--slate-300);
+        /* ADDED: Add top padding to space it from header */
+        padding-top: 0.5rem;
+      }
+
+      .answer-text {
+        font-size: 0.875rem;
+        font-weight: 300;
+        line-height: 1.6;
+        white-space: pre-line;
+      }
+
+      /* ADDED: Style for the question toggle icon */
+      .question-toggle-icon {
+        transition: transform 0.3s;
+        flex-shrink: 0;
+        margin-left: 0.5rem;
+      }
+
+      /* Footer */
+      .footer {
+        background-color: var(--slate-900);
+        border-top: 1px solid var(--slate-700);
+        margin-top: 3rem;
+        padding: 1rem 0;
+        text-align: center;
+        color: var(--slate-500);
+        font-size: 0.875rem;
+      }
+
+      /* Utility classes */
+      .flex {
+        display: flex;
+      }
+      .items-center {
+        align-items: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
+      .gap-2 {
+        gap: 0.5rem;
+      }
+      .gap-4 {
+        gap: 1rem;
+      }
+      .text-3xl {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+      }
+      .text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
+      .font-bold {
+        font-weight: 700;
+      }
+      .font-semibold {
+        font-weight: 600;
+      }
+      .mt-1 {
+        margin-top: 0.25rem;
+      }
+      .mb-2 {
+        margin-bottom: 0.5rem;
+      }
+      .rounded-lg {
+        border-radius: 0.5rem;
+      }
+      .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .py-2 {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+      .w-full {
+        width: 100%;
+      }
+      .flex-col {
+        flex-direction: column;
+      }
+      .flex-1 {
+        flex: 1 1 0%;
+      }
+      .text-lg {
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+      }
+      .mr-2 {
+        margin-right: 0.5rem;
+      }
+
+      /* Message Box for No Results */
+      .message-box {
+        text-align: center;
+        padding: 2.5rem;
+        background-color: var(--slate-800);
+        border-radius: 0.75rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--slate-700);
+        margin-top: 1.5rem;
+      }
+
+      /* Media Queries */
+      @media (min-width: 1024px) {
+        .lg-flex-row {
+          flex-direction: row;
+        }
+        .lg-w-1\/4 {
+          width: 25%;
+        }
+      }
+      @media (max-width: 1023px) {
+        .lg-w-1\/4 {
+          margin-top: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Data is assumed to be loaded here from the file
+      const sectionsData = [
+        {
+          id: "foundational",
+          title: "I. Foundational Concepts & Project Rationale",
+          icon: "book-open",
+          color: "header-blue",
+          questions: [
+            {
+              q: 1,
+              question:
+                "What is the primary philosophical basis of the Pi-Vate Cloud project?",
+              answer:
+                "The primary philosophical basis is data sovereignty, which asserts that users must retain exclusive ownership and physical control over their digital archives, independent of third-party entities. Commercial models impose perpetual financial burdens (OpEx) and retain broad rights to process user data.",
+            },
+            {
+              q: 2,
+              question:
+                "State the three central pillars of Pi-Vate Cloud design.",
+              answer:
+                "1. Cost-effectiveness (dramatically reducing lifetime storage expenses)\n2. Privacy and data sovereignty (retaining exclusive data control)\n3. Usability for non-experts (simplifying deployment to overcome the steep learning curve)",
+            },
+            {
+              q: 3,
+              question:
+                "Define 'Vendor Lock-in' and how Pi-Vate Cloud solves it.",
+              answer:
+                "Vendor lock-in occurs because migrating large data volumes (e.g., 5 TB) between proprietary platforms is bandwidth-intensive (taking over five consecutive days on a 100 Mbps line) and time-consuming. Pi-Vate Cloud eliminates this by utilizing open-source software and user-owned hardware, ensuring full control and mobility.",
+            },
+            {
+              q: 4,
+              question:
+                "Cite two high-profile security incidents that underscore centralization risk.",
+              answer:
+                "The Dropbox credential leak (68 million accounts affected in 2016) and the 2014 iCloud celebrity photo leaks highlight the systemic risk of centralized storage.",
+            },
+            {
+              q: 5,
+              question:
+                "What percentage of consumers are concerned about corporate data misuse?",
+              answer:
+                "Approximately 40% of consumers express concern about corporate misuse of their personal data, supporting the shift toward self-sovereign storage models.",
+            },
+            {
+              q: 6,
+              question:
+                "What international security standard can Pi-Vate Cloud be benchmarked against?",
+              answer:
+                "The project aligns with the spirit of privacy-by-design frameworks, such as ISO/IEC 27018, which defines standards for safeguarding PII in cloud environments.",
+            },
+            {
+              q: 7,
+              question:
+                "What is the main functional contribution of the Pi-Vate Cloud blueprint?",
+              answer:
+                "A fully documented design and prototype of a Raspberry Pi-based personal cloud system capable of replacing commercial storage services for households and small groups.",
+            },
+            {
+              q: 8,
+              question:
+                "What three core services does Pi-Vate Cloud functionally support?",
+              answer:
+                "1. File synchronization and sharing (via Samba/SFTP)\n2. Remote access (via zero-trust tunnels/Twingate)\n3. Media streaming (via Plex Media Server)",
+            },
+            {
+              q: 9,
+              question: "Why is 1 GB RAM sufficient for the initial prototype?",
+              answer:
+                "The 1 GB RAM model is sufficient because the system is designed for a dedicated, I/O-focused workload running on a lightweight OS (Raspberry Pi OS Lite), which minimizes memory overhead.",
+            },
+            {
+              q: 10,
+              question:
+                "What benefit does OpenMediaVault (OMV) provide for non-experts?",
+              answer:
+                "OMV provides a comprehensive web administration interface, which significantly simplifies volume management, service provisioning, and monitoring, mitigating the need for deep command-line knowledge.",
+            },
+            {
+              q: 11,
+              question:
+                "What is the crucial academic contribution of this work?",
+              answer:
+                "An empirical validation under real-world conditions and a comparative Total Cost of Ownership (TCO) assessment that quantitatively supports the financial argument for digital self-determination.",
+            },
+            {
+              q: 12,
+              question:
+                "What are the two major limitations of the initial prototype?",
+              answer:
+                "1. Plex transcoding constraints (due to RPi 4's limited CPU power)\n2. Single-disk reliability (a single point of failure)",
+            },
+            {
+              q: 13,
+              question:
+                "What system component provides secure, zero-trust remote access?",
+              answer:
+                "Twingate (free up to 5 users under the Starter plan) provides secure zero-trust access by avoiding vulnerable port-forwarding.",
+            },
+            {
+              q: 14,
+              question:
+                "Explain 'self-sovereign' data ecosystem in one sentence.",
+              answer:
+                "A self-sovereign data ecosystem is one where the user retains exclusive ownership, physical control, and privacy over their digital archives, independent of any external corporate or governmental entity.",
+            },
+            {
+              q: 15,
+              question:
+                "What is the baseline deployment time for novice users?",
+              answer:
+                "Pilot tests suggested a baseline deployment time of approximately 1.5 hours under novice conditions.",
+            },
+          ],
+        },
+        {
+          id: "financial",
+          title: "II. Financial Viability and Total Cost of Ownership (TCO)",
+          icon: "dollar-sign",
+          color: "header-green",
+          questions: [
+            {
+              q: 16,
+              question: "What was the initial CapEx for the prototype?",
+              answer:
+                "Approximately $110 (₹9,000 equivalent), covering Raspberry Pi 4 Model B (1 GB), Seagate Barracuda 1 TB HDD, 32 GB MicroSD card, USB enclosure, and power supply unit.",
+            },
+            {
+              q: 17,
+              question:
+                "What is the main economic distinction from commercial cloud services?",
+              answer:
+                "Pi-Vate Cloud converts storage from a perpetual Operational Expense (OpEx) (subscription fees) to a finite Capital Expense (CapEx) (hardware purchase).",
+            },
+            {
+              q: 18,
+              question: "Calculate the annual OpEx for the prototype.",
+              answer:
+                "The system draws 5-7 W at idle, consuming approximately 1.5 kWh/month. This translates to an estimated monthly cost of approximately $2, or $24 per year (₹150/month).",
+            },
+            {
+              q: 19,
+              question:
+                "What is the break-even point against Google One ($100/year for 1 TB)?",
+              answer:
+                "The break-even point is approximately 1.1 years when benchmarked against the annual savings from avoiding the Google One subscription fee.",
+            },
+            {
+              q: 20,
+              question: "What is the 3-year TCO and percentage saving?",
+              answer:
+                "Over three years, the TCO for Pi-Vate Cloud is approximately $182, representing a cost saving of approximately 39% compared to commercial alternatives (approx. $300).",
+            },
+            {
+              q: 21,
+              question: "What are the estimated 5-year savings?",
+              answer:
+                "Over five years, savings range from 54% to 62%, as the Pi-Vate Cloud TCO is approximately $230, while commercial TCO ranges from $500 to $600.",
+            },
+            {
+              q: 22,
+              question:
+                "Why does financial advantage become 'profoundly clear' at 5 years?",
+              answer:
+                "The CapEx is fixed, so the OpEx advantage (low electricity cost vs. high recurring subscription) compounds over time, making long-term savings much more substantial.",
+            },
+            {
+              q: 23,
+              question:
+                "How does TCO validate ≥70% savings for larger storage?",
+              answer:
+                "Since RPi 4 hardware and its low OpEx are fixed, upgrading storage capacity (e.g., to 4 TB) only increases CapEx slightly, whereas comparative commercial subscription cost would quadruple, amplifying the financial benefit.",
+            },
+            {
+              q: 24,
+              question: "Which commercial cloud plans were TCO benchmarks?",
+              answer:
+                "Google One, Dropbox Plus, and iCloud+ were used as benchmarks for the TCO analysis.",
+            },
+            {
+              q: 25,
+              question:
+                "Why could commercial subscriptions cost $600-$1,500 over 5 years?",
+              answer:
+                "This accumulation is due to the subscription model, where users pay perpetual recurring fees without ever acquiring permanent ownership of the underlying storage infrastructure.",
+            },
+            {
+              q: 26,
+              question:
+                "What happens to commercial costs when upgrading from 1 TB to 4 TB?",
+              answer:
+                "The comparative commercial subscription cost for 4 TB would typically quadruple compared to the 1 TB plan.",
+            },
+            {
+              q: 27,
+              question:
+                "What Indian electricity rate was used for OpEx calculation?",
+              answer:
+                "An average Indian electricity rate of approximately ₹10/kWh was used for the calculation.",
+            },
+            {
+              q: 28,
+              question:
+                "How would using 8 GB RAM ($75) instead of 1 GB ($35) affect 5-year TCO?",
+              answer:
+                "It would increase initial CapEx by $40, slightly delaying break-even point, but overall 5-year TCO would still be dramatically lower than commercial alternatives because OpEx remains fixed.",
+            },
+            {
+              q: 29,
+              question:
+                "What is meant by 'insulation from future price hikes'?",
+              answer:
+                "Since the user owns the hardware, they are insulated from future price increases or changes in subscription models imposed by commercial cloud providers, ensuring predictable long-term costs.",
+            },
+            {
+              q: 30,
+              question: "Why wasn't Twingate factored into CapEx?",
+              answer:
+                "Twingate's Starter plan is free of charge for up to 5 users, which is sufficient for a household-scale workload, thus incurring no cost in the prototype's financial model.",
+            },
+          ],
+        },
+        {
+          id: "hardware",
+          title: "III. Hardware Architecture & Component Justification",
+          icon: "server",
+          color: "header-purple",
+          questions: [
+            {
+              q: 31,
+              question:
+                "Why was Raspberry Pi 4 Model B selected for I/O architecture?",
+              answer:
+                "The Pi 4 separates Gigabit Ethernet and USB I/O controllers by placing them on a dedicated PCIe Gen 2 bus. This eliminates the bottleneck where previous models routed all I/O through a single USB 2.0 controller.",
+            },
+            {
+              q: 32,
+              question: "What is the Pi 4's USB 3.0 throughput speed?",
+              answer:
+                "USB 3.0 interface can theoretically hit 5 Gbps / 620 MB/s. In reality, the Pi 4 can sustain over 100 MB/s in LAN transfers, making it competitive with entry-level commercial NAS devices.",
+            },
+            {
+              q: 33,
+              question: "Which storage drives were used in the prototype?",
+              answer:
+                'Main storage: Seagate Barracuda 1 TB (3.5" HDD). Boot device: Samsung 32 GB microSD card.',
+            },
+            {
+              q: 34,
+              question:
+                "What USB enclosure feature maximizes disk I/O efficiency?",
+              answer:
+                "The enclosure must support UASP (USB Attached SCSI Protocol), which improves disk I/O efficiency by reducing command overhead by approximately 50%.",
+            },
+            {
+              q: 35,
+              question:
+                'What connection consideration is needed for 3.5" HDDs?',
+              answer:
+                "A 3.5\" HDD requires a robust external power supply for the USB enclosure to prevent unstable voltage draw from the Pi's internal power rail during high-demand I/O operations.",
+            },
+            {
+              q: 36,
+              question:
+                "What performance metric is negatively impacted by using HDD over SSD?",
+              answer:
+                "Random I/O performance is limited by the HDD. This particularly affects tasks involving numerous small file accesses, such as Plex media metadata generation or application launching.",
+            },
+            {
+              q: 37,
+              question:
+                "What are the SoC specifications used in Raspberry Pi 4?",
+              answer:
+                "Broadcom BCM2711, Quad core Cortex-A72 (ARM v8) 64-bit SoC @ 1.8GHz.",
+            },
+            {
+              q: 38,
+              question:
+                "How many USB ports does RPi 4 have and which for storage?",
+              answer:
+                "It has 2 USB 3.0 ports (blue) and 2 USB 2.0 ports. External storage should be connected to the USB 3.0 ports for higher throughput.",
+            },
+            {
+              q: 39,
+              question:
+                "What is the speed increase benefit of USB storage vs microSD?",
+              answer:
+                "Using USB-connected SSDs/HDDs yields a 2-4× speed increase compared to using microSD cards for application or file transfers.",
+            },
+            {
+              q: 40,
+              question:
+                "Why doesn't H.265 (4Kp60) hardware decoding benefit Plex server?",
+              answer:
+                "Hardware decoding benefits the client device (which can decode the stream), not the server (which must perform the computationally demanding task of encoding/transcoding the stream for adaptive remote playback).",
+            },
+            {
+              q: 41,
+              question:
+                "Describe the network connection in the testbed environment.",
+              answer:
+                "The Pi was connected via Ethernet cable to a MiFi router acting as an extender, which was connected to an Airtel Xstream main router. The ISP plan was Airtel 100 Mbps.",
+            },
+            {
+              q: 42,
+              question:
+                "Why are fan-cooled solutions adopted by DIY NAS builders?",
+              answer:
+                "Fan-cooled solutions preserve consistent speeds because sustained high I/O workloads without active cooling can cause CPU and controller performance to throttle.",
+            },
+            {
+              q: 43,
+              question: "Which figure illustrates the hardware topology?",
+              answer:
+                "Figure 2: Overall hardware topology of the Pi-Vate Cloud testbed, showing Raspberry Pi 4, HDD, microSD, router, and client devices.",
+            },
+            {
+              q: 44,
+              question: "What is the minimum recommended power supply rating?",
+              answer:
+                "The Raspberry Pi 4 needs a 5V/3A power supply with USB-C. A weak power supply can lead to disk corruption, especially during high I/O activity.",
+            },
+            {
+              q: 45,
+              question: "What power connector does Raspberry Pi 4 use?",
+              answer:
+                "The Raspberry Pi 4 uses a USB-C connector for its power interface.",
+            },
+          ],
+        },
+        {
+          id: "software",
+          title: "IV. Software Stack, OMV, and Containerization",
+          icon: "cloud",
+          color: "header-cyan",
+          questions: [
+            {
+              q: 46,
+              question: "What is OpenMediaVault (OMV)?",
+              answer:
+                "OMV is the next generation Network Attached Storage (NAS) solution based on Debian Linux. It provides a web-based administration interface for managing services.",
+            },
+            {
+              q: 47,
+              question: "Name two NAS services configured via OMV.",
+              answer:
+                "OMV is used to configure and manage Samba/CIFS (for Windows/macOS file shares) and SFTP.",
+            },
+            {
+              q: 48,
+              question:
+                "What tool deploys applications like Plex and what's its benefit?",
+              answer:
+                "Docker containers are used. The primary benefit is isolation and modularity, preventing dependency conflicts between services and simplifying system maintenance.",
+            },
+            {
+              q: 49,
+              question:
+                "What synchronization task does OMV handle automatically?",
+              answer:
+                "OMV automatically handles the synchronization of user passwords between the underlying Linux operating system and the separate Samba internal password database.",
+            },
+            {
+              q: 50,
+              question:
+                "What happens if password is changed via Linux shell bypassing OMV?",
+              answer:
+                "If a password is changed via the Linux shell, the crucial synchronization with the Samba internal database is bypassed, potentially locking the user out of their Samba shares.",
+            },
+            {
+              q: 51,
+              question:
+                "What must Plex configuration prioritize given RPi 4's limitations?",
+              answer:
+                "The configuration must prioritize Direct Play. This avoids transcoding entirely, serving the original file to the client.",
+            },
+            {
+              q: 52,
+              question: "What are S.M.A.R.T. tools and their relevance to OMV?",
+              answer:
+                "S.M.A.R.T. (Self-Monitoring, Analysis and Reporting Technology) tools are utilized by OMV to monitor and report on disk health, which helps predict potential hardware failures.",
+            },
+            {
+              q: 53,
+              question:
+                "What configuration file type is used for deploying Docker services?",
+              answer:
+                "A standard docker-compose.yml configuration is typically used to install Docker and deploy applications.",
+            },
+            {
+              q: 54,
+              question:
+                "Name two types of services Docker containerization enables.",
+              answer:
+                "File sync, VPN, media server, backup, and monitoring services are examples of extensions possible via modular containerized deployment.",
+            },
+            {
+              q: 55,
+              question: "What is the function of rsyslog or Logwatch?",
+              answer:
+                "They are lightweight log monitoring tools used to generate daily or weekly reports on system activity.",
+            },
+            {
+              q: 56,
+              question: "What OMV plugin integrates container management?",
+              answer:
+                "The research material mentions OMV's improved Docker integration features and the openmediavault-k8s plugin for K3S.",
+            },
+            {
+              q: 57,
+              question:
+                "What trade-off exists between Plex convenience and data sovereignty?",
+              answer:
+                "While Plex is convenient, it is proprietary software. The trade-off is accepting a closed-source ecosystem for media management (Plex) on top of the open-source base (OMV/Linux), which balances utility with the core principle of sovereignty.",
+            },
+            {
+              q: 58,
+              question:
+                "What command is necessary for provisioning and base OS setup?",
+              answer:
+                "Flashing the Raspberry Pi OS Lite onto the microSD card using Raspberry Pi Imager is the first step.",
+            },
+            {
+              q: 59,
+              question:
+                "Which figure summarizes software components and service flow?",
+              answer:
+                "Figure 3: Software and service stack of the Pi-Vate Cloud, showing OpenMediaVault for NAS management, Docker containers (Plex, backups), network services (SMB, SFTP), and Twingate for secure remote access.",
+            },
+            {
+              q: 60,
+              question:
+                "Which flowchart illustrates the implementation process?",
+              answer:
+                "Figure 5 Flowchart: Implementation workflow of the Pi-Vate Cloud project, summarizing provisioning, storage setup, container deployment, remote access configuration, and layered security hardening steps.",
+            },
+          ],
+        },
+        {
+          id: "security",
+          title: "V. Security, Encryption (LUKS), and Authentication",
+          icon: "shield",
+          color: "header-red",
+          questions: [
+            {
+              q: 61,
+              question:
+                "What measure is enforced for SSH access and why is it more secure?",
+              answer:
+                "SSH Key-Only Access is enforced, disabling password-based login. This vastly increases security entropy and eliminates the primary vector for automated password brute-force attacks.",
+            },
+            {
+              q: 62,
+              question: "What is the primary defense against physical theft?",
+              answer:
+                "Full-disk encryption using LUKS (Linux Unified Key Setup) is the primary defense, securing data at rest.",
+            },
+            {
+              q: 63,
+              question:
+                "Why was LUKS encryption omitted from the initial prototype?",
+              answer:
+                "It was omitted to prioritize ease of deployment and performance for the first iteration. Encryption can introduce a minor computational overhead (typically ~10% impact in modern benchmarks).",
+            },
+            {
+              q: 64,
+              question:
+                "What Linux utility configures firewall rules on Raspberry Pi OS?",
+              answer: "The Uncomplicated Firewall (UFW) is used.",
+            },
+            {
+              q: 65,
+              question:
+                "What is UFW's default policy and which services are permitted?",
+              answer:
+                "UFW is configured to adopt a default-deny policy. It permits access only for essential, localized services: Samba, Plex, and the external Twingate Connector endpoint.",
+            },
+            {
+              q: 66,
+              question: "How is UFW utilized to secure SSH?",
+              answer:
+                "UFW is configured to apply rate limiting to SSH access, which slows down potential attackers during brute-force attempts.",
+            },
+            {
+              q: 67,
+              question: "What is the purpose of fail2ban?",
+              answer:
+                "fail2ban monitors system logs for suspicious activity (like repeated login failures). Upon detection, it dynamically updates UFW rules to temporarily block the offending IP address, providing real-time defense against brute-force attempts.",
+            },
+            {
+              q: 68,
+              question: "What does LUKS provide for protection and recovery?",
+              answer:
+                "LUKS provides passphrase strengthening to protect against dictionary attacks and supports multiple key slots so users can add backup keys or passphrases.",
+            },
+            {
+              q: 69,
+              question:
+                "What is a Formal Penetration Test and why is it recommended?",
+              answer:
+                "A Pentest is a simulated, authorized attack used to validate the integrity of the implemented configurations against potential configuration errors or zero-day exploits, transitioning the security posture from theoretically sound to operationally validated.",
+            },
+            {
+              q: 70,
+              question:
+                "What two advanced IDS tools are recommended for future work?",
+              answer:
+                "More advanced tools recommended are Snort or Suricata, which can perform deep packet inspection to identify sophisticated network anomalies and attack signatures.",
+            },
+            {
+              q: 71,
+              question:
+                "What does robust data integrity and recovery strategy mandate?",
+              answer:
+                "It mandates a comprehensive, multi-layered backup strategy that is automated and includes Local Redundancy (e.g., RAID 1 or rsync to a second drive) and Off-site/Cloud Backup of encrypted critical data.",
+            },
+            {
+              q: 72,
+              question:
+                "What is the consequence of not implementing LUKS if hardware is stolen?",
+              answer:
+                "If the external HDD is physically stolen without LUKS encryption, all data is exposed, as there is no protection for data at rest.",
+            },
+            {
+              q: 73,
+              question: "What does 'default-deny policy' mean in UFW context?",
+              answer:
+                "It means that by default, all incoming and outgoing network traffic is blocked, and only traffic explicitly permitted by a rule (like traffic for Samba or Plex) is allowed to pass.",
+            },
+            {
+              q: 74,
+              question:
+                "What risk is mitigated by using official images for Docker containers?",
+              answer:
+                "This mitigates the risk of supply chain attacks or deploying containers with known, unpatched vulnerabilities.",
+            },
+            {
+              q: 75,
+              question: "What fundamental risk does Zero-Trust model avoid?",
+              answer:
+                "It avoids the fundamental risk of relying on vulnerable port-forwarding, which exposes services to internet-wide scanning and brute-force attacks.",
+            },
+          ],
+        },
+        {
+          id: "ztna",
+          title: "VI. Zero-Trust Network Access (ZTNA) Deep Dive",
+          icon: "shield",
+          color: "header-indigo",
+          questions: [
+            {
+              q: 76,
+              question:
+                "Define the core principle of Zero-Trust Network Access (ZTNA).",
+              answer:
+                "ZTNA adheres to the 'never trust, always verify' security model, requiring rigorous verification of every access attempt based on user identity and device context, even if the user is on the private network.",
+            },
+            {
+              q: 77,
+              question: "How does ZTNA differ from traditional VPN?",
+              answer:
+                "Traditional VPNs often operate on a 'trust but verify' model, granting broad network access once a user is authenticated, potentially exposing the entire internal network. ZTNA grants access only to the specific application or resource authorized (micro-segmentation).",
+            },
+            {
+              q: 78,
+              question:
+                "What mechanism does Twingate use to create a 'dark' network?",
+              answer:
+                "The Twingate Connector (running on the Pi) establishes an outbound encrypted tunnel to the Twingate Controller. Because no inbound ports are ever opened on the user's router, the Pi-Vate Cloud is invisible to internet scanners.",
+            },
+            {
+              q: 79,
+              question: "Name the four key components of Twingate.",
+              answer:
+                "The four components are the Controller (manages policies), Connector (runs on the Pi), Client (on the remote device), and Relay (cloud-based traffic forwarder).",
+            },
+            {
+              q: 80,
+              question: "Explain micro-segmentation in ZTNA context.",
+              answer:
+                "Micro-segmentation ensures that access is verified per session and is strictly limited only to the specific application or resource authorized for that user (e.g., only the Plex port), preventing lateral movement within the network.",
+            },
+            {
+              q: 81,
+              question:
+                "Why is authorization confirmed by multiple components?",
+              answer:
+                "This structure ensures security through a separation of concerns, preventing any single component from independently making an authorization decision and thereby avoiding a single point of failure that could allow unauthorized traffic flow.",
+            },
+            {
+              q: 82,
+              question:
+                "How is ZTNA user experience perceived vs traditional VPN?",
+              answer:
+                "The ZTNA experience is often described as seamless and transparent, working in the background to provide quicker access directly to the application, which improves security compliance and productivity.",
+            },
+            {
+              q: 83,
+              question:
+                "Why is ZTNA a better fit for modern cloud environments than VPNs?",
+              answer:
+                "ZTNA focuses on application-level security independent of the network layer, and it provides fast, secure access in cloud-based settings, unlike traditional VPNs which focus exclusively on the network layer and may experience slower speeds in the cloud.",
+            },
+            {
+              q: 84,
+              question: "Which Twingate component handles security policies?",
+              answer:
+                "The Controller manages the security policies and authorization decisions.",
+            },
+            {
+              q: 85,
+              question: "What is the function of the Twingate Relay?",
+              answer:
+                "The Relay is a cloud-based infrastructure component that forwards encrypted traffic if a direct Client-Connector connection (peer-to-peer) cannot be established.",
+            },
+            {
+              q: 86,
+              question:
+                "What prevents lateral movement if a connected device is compromised?",
+              answer:
+                "ZTNA's granular control/micro-segmentation ensures the compromised device is only authorized for the specific resource it was intended to access (e.g., only Plex), preventing lateral movement to other devices on the internal network.",
+            },
+            {
+              q: 7,
+              question:
+                "What three checks are performed before ZTNA grants access?",
+              answer:
+                "ZTNA verifies: 1. User identity authentication (via IdP). 2. Contextual authorization (risk profile). 3. Device posture checks (endpoint safety).",
+            },
+            {
+              q: 88,
+              question:
+                "What specific configuration instruction is given for remote access?",
+              answer:
+                "The most critical security recommendation is to avoid traditional port forwarding on the router entirely, employing a ZTNA solution like Twingate instead.",
+            },
+            {
+              q: 89,
+              question:
+                "Which figure describes Twingate component interactions?",
+              answer:
+                "Figure 4: Twingate peer-to-peer connection establishment, showing how clients and connectors attempt direct connections, with relays as fallback for secure tunnelling.",
+            },
+            {
+              q: 90,
+              question: "What ZTNA feature minimizes third-party access risks?",
+              answer:
+                "ZTNA excels in minimizing third-party risks by limiting its reach to only the necessary resources, unlike VPNs which often grant broad network access.",
+            },
+          ],
+        },
+        {
+          id: "performance",
+          title: "VII. Performance, Empirical Analysis, and Future Work",
+          icon: "zap",
+          color: "header-yellow",
+          questions: [
+            {
+              q: 91,
+              question:
+                "What was the measured upload rate and what was the bottleneck?",
+              answer:
+                "The effective rate was 1.85-2.22 MB/s (~15-18 Mbps). The primary bottleneck was the user's network infrastructure (Wi-Fi extender setup and ISP uplink speed), not the RPi 4's internal I/O components.",
+            },
+            {
+              q: 92,
+              question:
+                "What was the performance objective for local transfers and why wasn't it achieved?",
+              answer:
+                "The objective was to achieve local transfer rates of ≥80 MB/s. This was not achieved because the testing utilized a Wi-Fi link and Wi-Fi extender setup, which capped the practical throughput.",
+            },
+            {
+              q: 93,
+              question: "What Samba parameter optimizes write performance?",
+              answer:
+                "Enabling the 'strict allocate = yes' parameter is recommended. This leverages the Linux posix_fallocate() call on modern filesystems (like ext4/XFS), which pre-allocates contiguous block extents for large sequential writes, increasing write performance by up to two-thirds.",
+            },
+            {
+              q: 94,
+              question:
+                "Name two tools recommended for I/O and network validation.",
+              answer:
+                "1. fio (Flexible I/O Tester) for controlled sequential and random read/write speeds, isolating raw storage throughput. 2. iperf3 for measuring pure network throughput (TCP/UDP), isolating network bottlenecks.",
+            },
+            {
+              q: 95,
+              question:
+                "Why is remote streaming best suited for lower-bitrate media?",
+              answer:
+                "The Raspberry Pi 4's CPU is inadequate for real-time video transcoding. If a remote user has low bandwidth, the Pi cannot effectively transcode the video stream down, leading to buffering and failure.",
+            },
+            {
+              q: 96,
+              question:
+                "What step addresses the single-disk reliability limitation?",
+              answer:
+                "Implementing Software RAID 1 (mirroring) using a second drive via OpenMediaVault, or establishing automated, incremental backups (e.g., rsync to a separate location), is necessary.",
+            },
+            {
+              q: 97,
+              question:
+                "How did remote download time correlate with local upload time?",
+              answer:
+                "The remote download time (capped by ISP uplink speed) was approximately 25-30 minutes, which matched the local upload time observed in the SMB file transfer test. This confirms the overall WAN performance is capped by the maximum achievable ISP uplink speed.",
+            },
+            {
+              q: 98,
+              question: "Why is formal usability evaluation required?",
+              answer:
+                "A formal usability evaluation is required to test and refine the documentation and installation process to ensure non-technical users can confidently manage their self-sovereign digital ecosystem, validating the project's third core pillar.",
+            },
+            {
+              q: 99,
+              question: "What is the purpose of Concurrency and Load Testing?",
+              answer:
+                "To simulate multiple simultaneous users (e.g., simultaneous file syncs and streams) to evaluate the system's stability and performance degradation under load, assessing the impact on the 1GB RAM and CPU.",
+            },
+            {
+              q: 100,
+              question:
+                "What is the ultimate conclusion about Pi-Vate Cloud's contribution?",
+              answer:
+                "The work serves as a foundational proof-of-concept that digital self-determination is an achievable reality, providing a robust framework for individuals to reclaim their digital autonomy and achieve a more secure, private, and cost-effective future for personal data management.",
+            },
+          ],
+        },
+      ];
+    </script>
+
+    <header class="header">
+      <div class="container flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold" style="color: var(--white)">
+            Pi-Vate Cloud
+          </h1>
+          <p class="mt-1" style="color: var(--slate-400)">
+            100-Question Comprehensive Defense Dossier
+          </p>
+        </div>
+        <div
+          class="flex items-center gap-2 rounded-lg px-4 py-2"
+          style="background-color: var(--slate-700)"
+        >
+          <i
+            data-lucide="server"
+            style="color: var(--cyan-500)"
+            width="20"
+            height="20"
+          ></i>
+          <span class="font-semibold" style="color: var(--white)"
+            >7 Sections</span
+          >
+        </div>
+      </div>
+    </header>
+
+    <div class="container" style="padding-top: 1.5rem; padding-bottom: 1.5rem">
+      <div class="search-bar-container">
+        <div class="flex flex-col gap-4 lg-flex-row">
+          <div class="search-input-group">
+            <i data-lucide="search" class="search-icon"></i>
+            <input
+              type="text"
+              id="searchTerm"
+              placeholder="Search questions and answers..."
+              class="search-input"
+            />
+          </div>
+          <div class="lg-w-1\/4">
+            <select id="categoryFilter" class="filter-select">
+              <option value="all">All Sections</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main class="container" id="mainContent" style="padding-bottom: 3rem">
+      <div id="sectionsContainer" style="margin-top: 1.5rem"></div>
+    </main>
+
+    <div
+      id="noResults"
+      class="message-box"
+      style="
+        display: none;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 600px;
+      "
+    >
+      <i
+        data-lucide="search"
+        style="color: var(--slate-400); margin: 0 auto; display: block"
+        width="48"
+        height="48"
+      ></i>
+      <h3 class="mt-2 text-lg font-medium" style="color: var(--white)">
+        No results found
+      </h3>
+      <p class="mt-1" style="color: var(--slate-400)">
+        Try adjusting your search term or filtering by a different section.
+      </p>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        &copy; 2025 Pi-Vate Cloud Project Dossier. All rights reserved.
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const sectionsContainer = document.getElementById("sectionsContainer");
+        const categoryFilter = document.getElementById("categoryFilter");
+        const searchTermInput = document.getElementById("searchTerm");
+        const noResultsBox = document.getElementById("noResults");
+
+        // --- 1. Rendering Functions ---
+
+        function renderAll() {
+          sectionsContainer.innerHTML = "";
+          const searchTerm = searchTermInput.value.toLowerCase();
+          const selectedCategory = categoryFilter.value;
+          let totalFilteredQuestions = 0;
+
+          sectionsData.forEach((section) => {
+            if (selectedCategory !== "all" && section.id !== selectedCategory) {
+              return;
+            }
+
+            const filteredQuestions = section.questions.filter(
+              (item) =>
+                searchTerm === "" ||
+                item.question.toLowerCase().includes(searchTerm) ||
+                item.answer.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredQuestions.length === 0 && searchTerm !== "") {
+              return; // Skip section if no matches
+            }
+
+            totalFilteredQuestions += filteredQuestions.length;
+
+            // Create Section Item
+            const sectionItem = document.createElement("div");
+            sectionItem.className = "section-item";
+            sectionItem.setAttribute("data-section-id", section.id);
+
+            // Create Header Button
+            const header = document.createElement("button");
+            header.className = `section-header ${section.color}`;
+            header.setAttribute("aria-expanded", "false");
+            header.onclick = () => toggleSection(section.id);
+
+            header.innerHTML = `
+                        <div class="section-header-content">
+                            <i data-lucide="${section.icon}" style="color: var(--white);" width="24" height="24"></i>
+                            <h2 class="section-title">
+                                ${section.title} <span style="color: var(--slate-300);">(${filteredQuestions.length} Qs)</span>
+                            </h2>
+                        </div>
+                        <i data-lucide="chevron-right" class="icon-toggle" style="color: var(--white);" width="24" height="24"></i>
+                    `;
+            sectionItem.appendChild(header);
+
+            // Create Questions List
+            const list = document.createElement("div");
+            list.className = "questions-list";
+            list.id = `list-${section.id}`;
+
+            // *** UPDATED: Build question items with collapsible logic ***
+            filteredQuestions.forEach((item) => {
+              const questionItem = document.createElement("div");
+              questionItem.className = "question-item"; // Will add 'active' class on toggle
+
+              // Create Clickable Header
+              const qHeader = document.createElement("div");
+              qHeader.className = "question-header";
+              qHeader.onclick = () => toggleQuestion(qHeader); // Attach new handler
+              qHeader.innerHTML = `
+                <p class="question-text"><span class="font-bold text-lg mr-2">Q${item.q}.</span> ${item.question}</p>
+                <i data-lucide="chevron-right" class="question-toggle-icon" style="color: var(--white);" width="20" height="20"></i>
+              `;
+
+              // Create Collapsible Content
+              const qContent = document.createElement("div");
+              qContent.className = "question-content";
+              qContent.innerHTML = `
+                <div class="answer-block">
+                    <p class="answer-text"><span class="font-semibold" style="color: var(--white);">A: </span>${item.answer}</p>
+                </div>
+              `;
+
+              questionItem.appendChild(qHeader);
+              questionItem.appendChild(qContent);
+              list.appendChild(questionItem);
+            });
+
+            sectionItem.appendChild(list);
+            sectionsContainer.appendChild(sectionItem);
+          });
+
+          // Update No Results Message
+          if (totalFilteredQuestions === 0) {
+            noResultsBox.style.display = "block";
+            sectionsContainer.style.display = "none";
+          } else {
+            noResultsBox.style.display = "none";
+            sectionsContainer.style.display = "block";
+          }
+
+          lucide.createIcons();
+        }
+
+        // --- 2. Interactive Logic ---
+
+        function toggleSection(sectionId) {
+          const header = document.querySelector(
+            `[data-section-id="${sectionId}"] .section-header`
+          );
+          const list = document.getElementById(`list-${sectionId}`);
+          const toggleIcon = header.querySelector(".icon-toggle");
+
+          const isExpanded = header.getAttribute("aria-expanded") === "true";
+
+          if (isExpanded) {
+            list.classList.remove("active");
+            header.setAttribute("aria-expanded", "false");
+            toggleIcon.setAttribute("data-lucide", "chevron-right");
+          } else {
+            list.classList.add("active");
+            header.setAttribute("aria-expanded", "true");
+            toggleIcon.setAttribute("data-lucide", "chevron-down");
+          }
+          lucide.createIcons();
+        }
+
+        // *** ADDED: New function to toggle individual questions ***
+        function toggleQuestion(header) {
+          const item = header.closest(".question-item");
+          if (!item) return;
+
+          const icon = header.querySelector(".question-toggle-icon");
+          if (!icon) return;
+
+          const isExpanded = item.classList.contains("active");
+
+          if (isExpanded) {
+            item.classList.remove("active");
+            icon.setAttribute("data-lucide", "chevron-right");
+          } else {
+            item.classList.add("active");
+            icon.setAttribute("data-lucide", "chevron-down");
+          }
+          lucide.createIcons();
+        }
+
+        // --- 3. Initialization ---
+
+        function initialize() {
+          // Populate Filter Dropdown
+          sectionsData.forEach((section) => {
+            const option = document.createElement("option");
+            option.value = section.id;
+            option.textContent = section.title.split(". ")[1]; // Use short name
+            categoryFilter.appendChild(option);
+          });
+
+          // Attach Event Listeners
+          searchTermInput.addEventListener("input", renderAll);
+          categoryFilter.addEventListener("change", renderAll);
+
+          // Initial Render
+          renderAll();
+        }
+
+        // Execute initialization
+        initialize();
+      });
+    </script>
+
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
+```eof
